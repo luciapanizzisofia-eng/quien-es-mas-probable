@@ -8,45 +8,48 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       background: #e6e6e6;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
       height: 100vh;
     }
 
     h1 {
-      margin-top: 40px;
-      font-size: 2.5rem;
+      margin-top: 90px;
+      font-size: 2.1rem;
       text-align: center;
+      padding: 0 20px;
     }
 
     #timer {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      position: fixed;
+      top: 15px;
+      right: 15px;
       background: white;
-      padding: 15px 25px;
-      border-radius: 20px;
-      font-size: 2rem;
+      padding: 12px 20px;
+      border-radius: 18px;
+      font-size: 1.8rem;
       font-weight: bold;
+      z-index: 10;
     }
 
     #timeUp {
       color: red;
-      font-size: 2.5rem;
-      margin-top: 10px;
+      font-size: 2.4rem;
+      margin: 10px 0 20px 0;
       display: none;
     }
 
     .players {
       display: flex;
       gap: 20px;
-      margin-bottom: 40px;
+      margin-top: auto;
+      margin-bottom: 30px;
       flex-wrap: wrap;
       justify-content: center;
+      width: 100%;
     }
 
     .player {
@@ -76,14 +79,34 @@
     .juli { border-bottom: 8px solid #ffd6a5; }
 
     button {
-      margin-bottom: 40px;
-      padding: 15px 40px;
+      margin-bottom: 25px;
+      padding: 14px 36px;
       font-size: 1.2rem;
       border: none;
       border-radius: 30px;
       background: black;
       color: white;
       cursor: pointer;
+    }
+
+    /* ===== MOBILE FIX ===== */
+    @media (max-width: 600px) {
+      .player {
+        width: 85%;
+        height: 90px;
+        font-size: 1.6rem;
+        padding: 10px;
+      }
+
+      .player span {
+        font-size: 1rem;
+        margin-top: 2px;
+      }
+
+      .players {
+        gap: 12px;
+        margin-bottom: 20px;
+      }
     }
   </style>
 </head>
@@ -118,12 +141,22 @@
     let currentQuestion = 0;
     let time = 15;
     let interval = null;
+    let audioUnlocked = false;
+
     let scores = {
       LURU: 0,
       LUPA: 0,
       JOSE: 0,
       JULI: 0
     };
+
+    function unlockAudio() {
+      if (!audioUnlocked) {
+        document.getElementById("tick").play().catch(() => {});
+        document.getElementById("horn").play().catch(() => {});
+        audioUnlocked = true;
+      }
+    }
 
     function startTimer() {
       clearInterval(interval);
@@ -144,6 +177,7 @@
     }
 
     function addPoint(name) {
+      unlockAudio();
       scores[name]++;
       document.getElementById(name).innerText = scores[name];
       document.getElementById("tick").play();
