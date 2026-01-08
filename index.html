@@ -8,19 +8,35 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #e6e6e6;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ececec;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
       height: 100vh;
     }
 
-    h1 {
-      margin-top: 90px;
-      font-size: 2.1rem;
+    .app {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
       text-align: center;
-      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    #question {
+      font-size: 22px;
+      margin: 20px 0;
+      min-height: 80px;
+    }
+
+    #ranking {
+      margin-bottom: 10px;
+      font-weight: bold;
     }
 
     #timer {
@@ -28,114 +44,87 @@
       top: 15px;
       right: 15px;
       background: white;
-      padding: 12px 20px;
-      border-radius: 18px;
-      font-size: 1.8rem;
+      padding: 10px 16px;
+      border-radius: 16px;
       font-weight: bold;
-      z-index: 10;
+      font-size: 20px;
     }
 
-    #timeUp {
+    #timeup {
       color: red;
-      font-size: 2.4rem;
-      margin: 10px 0;
+      font-size: 26px;
+      font-weight: bold;
       display: none;
-    }
-
-    .ranking {
-      background: white;
-      border-radius: 15px;
-      padding: 10px 20px;
-      margin-top: 10px;
-      font-size: 1.1rem;
+      margin-bottom: 10px;
     }
 
     .players {
-      display: flex;
-      gap: 20px;
-      margin-top: auto;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
     }
 
     .player {
-      width: 180px;
-      height: 120px;
       background: white;
-      border-radius: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      user-select: none;
     }
 
     .player span {
-      font-size: 1.2rem;
+      display: block;
+      font-size: 16px;
+      margin-top: 4px;
       font-weight: normal;
-      margin-top: 5px;
     }
 
-    .luru { border-bottom: 8px solid #ff9aa2; }
-    .lupa { border-bottom: 8px solid #a2d2ff; }
-    .jose { border-bottom: 8px solid #b5ffb3; }
-    .juli { border-bottom: 8px solid #ffd6a5; }
+    .luru { box-shadow: inset 0 -6px #ff9aa2; }
+    .lupa { box-shadow: inset 0 -6px #9ad0ff; }
+    .jose { box-shadow: inset 0 -6px #b5ffb0; }
+    .juli { box-shadow: inset 0 -6px #ffd6a5; }
 
     button {
-      margin-bottom: 25px;
-      padding: 14px 36px;
-      font-size: 1.2rem;
+      margin-top: 20px;
+      padding: 12px 26px;
       border: none;
-      border-radius: 30px;
+      border-radius: 24px;
       background: black;
       color: white;
+      font-size: 16px;
       cursor: pointer;
-    }
-
-    @media (max-width: 600px) {
-      .player {
-        width: 85%;
-        height: 90px;
-        font-size: 1.6rem;
-      }
-      .players {
-        gap: 12px;
-      }
     }
   </style>
 </head>
 
 <body>
+<div class="app">
 
   <div id="timer">15</div>
 
-  <h1 id="question">¿Quién es más probable?</h1>
-  <div id="timeUp">¡TIEMPO!</div>
+  <h1>¿Quién es más probable?</h1>
 
-  <div class="ranking" id="ranking">Ranking: —</div>
+  <div id="ranking">Ranking: —</div>
+
+  <div id="question"></div>
+  <div id="timeup">¡TIEMPO!</div>
 
   <div class="players">
-    <div class="player luru" onclick="addPoint('LURU')">LURU <span id="LURU">0</span></div>
-    <div class="player lupa" onclick="addPoint('LUPA')">LUPA <span id="LUPA">0</span></div>
-    <div class="player jose" onclick="addPoint('JOSE')">JOSE <span id="JOSE">0</span></div>
-    <div class="player juli" onclick="addPoint('JULI')">JULI <span id="JULI">0</span></div>
+    <div class="player luru" onclick="addPoint('LURU')">LURU<span id="LURU">0</span></div>
+    <div class="player lupa" onclick="addPoint('LUPA')">LUPA<span id="LUPA">0</span></div>
+    <div class="player jose" onclick="addPoint('JOSE')">JOSE<span id="JOSE">0</span></div>
+    <div class="player juli" onclick="addPoint('JULI')">JULI<span id="JULI">0</span></div>
   </div>
 
   <button onclick="nextQuestion()">Siguiente</button>
+</div>
 
-  <!-- Sonidos -->
-  <audio id="tick" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-  <audio id="horn" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
-  <script>
-    /*********** PEGÁ TUS PREGUNTAS ACÁ ***********/
-    const questions = [
-      "¿Quién es más probable que diga que esta saliendo y ni se levanto todavia?",
+<script>
+  // 👉 PEGÁ TUS PREGUNTAS ACÁ
+  const questions = [
+"¿Quién es más probable que diga que esta saliendo y ni se levanto todavia?",
       "¿Quién es más probable que viva sin bateria en el celular?",
       "¿Quién es más probable que suba una historia que después borre?",
       "¿Quién es más probable que coquetee aunque no le interese?",
@@ -169,88 +158,70 @@
       "Posicion 1 Reto: Mostrá tu último mensaje enviado",
       "Posicion 2 Reto: Hablá con acento raro por una ronda",
       "Posicion 3 Reto: Dejá que alguien revise tu galería por 10 segundos",
-      "Posicion 4 Reto: Decí una mentira y dos verdades sin decir cual es cual",
-      
-      
-    ];
-    /*********************************************/
+      "Posicion 4 Reto: Decí una mentira y dos verdades sin decir cual es cual"
+  ];
 
-    let shuffledQuestions = [];
-    let currentIndex = 0;
+  let shuffled = [];
+  let index = 0;
+  let timer;
+  let time = 15;
 
-    let time = 15;
-    let interval = null;
-    let audioUnlocked = false;
+  const scores = { LURU: 0, LUPA: 0, JOSE: 0, JULI: 0 };
 
-    let scores = {
-      LURU: 0,
-      LUPA: 0,
-      JOSE: 0,
-      JULI: 0
-    };
+  const tick = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  const horn = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
 
-    function shuffleQuestions() {
-      shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
-      currentIndex = 0;
-    }
+  function shuffleQuestions() {
+    shuffled = [...questions].sort(() => Math.random() - 0.5);
+    index = 0;
+  }
 
-    function updateRanking() {
-      const ranking = Object.entries(scores)
-        .sort((a, b) => b[1] - a[1])
-        .map(([name, score]) => `${name}: ${score}`)
-        .join(" | ");
+  function showQuestion() {
+    document.getElementById("timeup").style.display = "none";
+    document.getElementById("question").innerText = shuffled[index];
+    resetTimer();
+  }
 
-      document.getElementById("ranking").innerText = "Ranking: " + ranking;
-    }
+  function resetTimer() {
+    clearInterval(timer);
+    time = 15;
+    document.getElementById("timer").innerText = time;
 
-    function unlockAudio() {
-      if (!audioUnlocked) {
-        document.getElementById("tick").play().catch(() => {});
-        document.getElementById("horn").play().catch(() => {});
-        audioUnlocked = true;
-      }
-    }
-
-    function startTimer() {
-      clearInterval(interval);
-      time = 15;
+    timer = setInterval(() => {
+      time--;
       document.getElementById("timer").innerText = time;
-      document.getElementById("timeUp").style.display = "none";
-
-      interval = setInterval(() => {
-        time--;
-        document.getElementById("timer").innerText = time;
-
-        if (time === 0) {
-          clearInterval(interval);
-          document.getElementById("timeUp").style.display = "block";
-          document.getElementById("horn").play();
-        }
-      }, 1000);
-    }
-
-    function nextQuestion() {
-      if (shuffledQuestions.length === 0 || currentIndex >= shuffledQuestions.length) {
-        shuffleQuestions();
+      if (time <= 0) {
+        clearInterval(timer);
+        horn.play();
+        document.getElementById("timeup").style.display = "block";
       }
+    }, 1000);
+  }
 
-      document.getElementById("question").innerText = shuffledQuestions[currentIndex];
-      currentIndex++;
-      startTimer();
-    }
+  function nextQuestion() {
+    index++;
+    if (index >= shuffled.length) shuffleQuestions();
+    showQuestion();
+  }
 
-    function addPoint(name) {
-      unlockAudio();
-      scores[name]++;
-      document.getElementById(name).innerText = scores[name];
-      document.getElementById("tick").play();
-      updateRanking();
-    }
-
-    shuffleQuestions();
-    nextQuestion();
+  function addPoint(name) {
+    tick.play();
+    scores[name]++;
+    document.getElementById(name).innerText = scores[name];
     updateRanking();
-  </script>
+  }
 
+  function updateRanking() {
+    const sorted = Object.entries(scores)
+      .sort((a, b) => b[1] - a[1])
+      .map(e => e[0])
+      .join(" > ");
+    document.getElementById("ranking").innerText = "Ranking: " + sorted;
+  }
+
+  shuffleQuestions();
+  showQuestion();
+</script>
 </body>
 </html>
+
