@@ -169,8 +169,12 @@
 
   const scores = { LURU: 0, LUPA: 0, JOSE: 0, JULI: 0 };
 
-  const tick = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-  const horn = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+  const tick = new Audio("https://actions.google.com/sounds/v1/ui/click.ogg");
+  const horn = new Audio("https://actions.google.com/sounds/v1/ui/ping.ogg");
+
+  tick.volume = 0.3;
+  horn.volume = 0.4;
+
 
   function shuffleQuestions() {
     shuffled = [...questions].sort(() => Math.random() - 0.5);
@@ -212,17 +216,23 @@
     updateRanking();
   }
 
-  function updateRanking() {
-    const sorted = Object.entries(scores)
-      .sort((a, b) => b[1] - a[1])
-      .map(e => e[0])
-      .join(" > ");
-    document.getElementById("ranking").innerText = "Ranking: " + sorted;
-  }
+function updateRanking() {
+  const sorted = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1]);
+
+  let text = "Ranking: ";
+  sorted.forEach((item, index) => {
+    text += `${index + 1}. ${item[0]}   `;
+  });
+
+  document.getElementById("ranking").innerText = text;
+}
+
 
   shuffleQuestions();
   showQuestion();
 </script>
 </body>
 </html>
+
 
