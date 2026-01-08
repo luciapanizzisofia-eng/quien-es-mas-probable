@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>¿Quién es más probable? v2</title>
-
+  <title>¿Quién es más probable?</title>
 
   <style>
     body {
@@ -73,6 +72,7 @@
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
+      user-select: none;
     }
 
     .player span {
@@ -123,13 +123,48 @@
 </div>
 
 <script>
-  let audioEnabled = false;
+  // =========================
+  // 🔊 AUDIO CON WEB AUDIO API
+  // =========================
+  let audioCtx = null;
 
-  document.addEventListener("click", () => {
-    audioEnabled = true;
-  }, { once: true });
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }
 
-  // 👉 PEGÁ TUS PREGUNTAS ACÁ
+  document.addEventListener("click", initAudio, { once: true });
+
+  function playClickSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 600;
+    gain.gain.value = 0.05;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
+  }
+
+  function playTimeUpSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = 200;
+    gain.gain.value = 0.08;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  }
+
+  // =========================
+  // 🧠 JUEGO
+  // =========================
   const questions = [
 "¿Quién es más probable que diga que esta saliendo y ni se levanto todavia?",
       "¿Quién es más probable que viva sin bateria en el celular?",
@@ -175,13 +210,6 @@
 
   const scores = { LURU: 0, LUPA: 0, JOSE: 0, JULI: 0 };
 
-  const tick = new Audio("https://actions.google.com/sounds/v1/ui/click.ogg");
-  const horn = new Audio("https://actions.google.com/sounds/v1/ui/ping.ogg");
-
-  tick.volume = 0.3;
-  horn.volume = 0.4;
-
-
   function shuffleQuestions() {
     shuffled = [...questions].sort(() => Math.random() - 0.5);
     index = 0;
@@ -203,8 +231,7 @@
       document.getElementById("timer").innerText = time;
       if (time <= 0) {
         clearInterval(timer);
-        if (audioEnabled) horn.play();
-
+        playTimeUpSound();
         document.getElementById("timeup").style.display = "block";
       }
     }, 1000);
@@ -217,25 +244,20 @@
   }
 
   function addPoint(name) {
-    if (audioEnabled) tick.play();
-
+    playClickSound();
     scores[name]++;
     document.getElementById(name).innerText = scores[name];
     updateRanking();
   }
 
-function updateRanking() {
-  const sorted = Object.entries(scores)
-    .sort((a, b) => b[1] - a[1]);
-
-  let text = "Ranking: ";
-  sorted.forEach((item, index) => {
-    text += `${index + 1}. ${item[0]}   `;
-  });
-
-  document.getElementById("ranking").innerText = text;
-}
-
+  function updateRanking() {
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    let text = "Ranking: ";
+    sorted.forEach((item, i) => {
+      text += `${i + 1}. ${item[0]}   `;
+    });
+    document.getElementById("ranking").innerText = text;
+  }
 
   shuffleQuestions();
   showQuestion();
