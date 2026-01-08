@@ -123,6 +123,12 @@
 </div>
 
 <script>
+  let audioEnabled = false;
+
+  document.addEventListener("click", () => {
+    audioEnabled = true;
+  }, { once: true });
+
   // 👉 PEGÁ TUS PREGUNTAS ACÁ
   const questions = [
 "¿Quién es más probable que diga que esta saliendo y ni se levanto todavia?",
@@ -197,7 +203,8 @@
       document.getElementById("timer").innerText = time;
       if (time <= 0) {
         clearInterval(timer);
-        horn.play();
+        if (audioEnabled) horn.play();
+
         document.getElementById("timeup").style.display = "block";
       }
     }, 1000);
@@ -210,7 +217,8 @@
   }
 
   function addPoint(name) {
-    tick.play();
+    if (audioEnabled) tick.play();
+
     scores[name]++;
     document.getElementById(name).innerText = scores[name];
     updateRanking();
@@ -234,5 +242,6 @@ function updateRanking() {
 </script>
 </body>
 </html>
+
 
 
