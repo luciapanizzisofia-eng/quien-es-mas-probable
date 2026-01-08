@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>¿Quién es más probable?</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ececec;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    #question {
+      font-size: 22px;
+      margin: 20px 0;
+      min-height: 80px;
+    }
+
+    #timer {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: white;
+      padding: 10px 16px;
+      border-radius: 16px;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    #timeup {
+      color: red;
+      font-size: 26px;
+      font-weight: bold;
+      display: none;
+      margin-bottom: 10px;
+    }
+
+    .players {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .player {
+      background: white;
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .player span {
+      display: block;
+      font-size: 16px;
+      margin-top: 4px;
+      font-weight: normal;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 12px 26px;
+      border: none;
+      border-radius: 24px;
+      background: black;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- SETUP -->
+  <div id="setup">
+    <h1>¿Quién juega?</h1>
+    <div id="inputs"></div>
+    <button onclick="addInput()">Agregar nombre</button>
+    <button onclick="startGame()">Empezar juego</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="hidden">
+    <div id="timer">15</div>
+    <h1>¿Quién es más probable?</h1>
+
+    <div id="question"></div>
+    <div id="timeup">¡TIEMPO!</div>
+    <div class="players" id="players"></div>
+    <button onclick="nextQuestion()">Siguiente</button>
+  </div>
+
+</div>
+
+<script>
+
+  let audioCtx = null;
+  document.addEventListener("click", () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }, { once: true });
+
+  function clickSound() {
+    if (!audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.frequency.value = 600;
+    g.gain.value = 0.05;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.05);
+  }
+
+  function timeSound() {
+    if (!audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.frequency.value = 200;
+    g.gain.value = 0.08;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.3);
+  }
+
+  const colors = [
+    "#ff9aa2",
+    "#9ad0ff",
+    "#b5ffb0",
+    "#ffd6a5",
+    "#cdb4db",
+    "#ffc8dd"
+  ];
+
+  const questions = [
+      "¿Quién es más probable que diga que esta saliendo y ni se levanto todavia?",
+      "¿Quién es más probable que viva sin bateria en el celular?",
+      "¿Quién es más probable que suba una historia que después borre?",
+      "¿Quién es más probable que coquetee aunque no le interese?",
+      "¿Quién es más probable que mande un mensaje que no debería esta semana?",
+      "Quien pensamos tuvo mas novies...", 
+      "Quien pensamos que tiene la lista de mejores mas grande...",
+      "¿Quién es más probable que termine siendo la mamá del grupo?",
+      "Quien pensamos va a sobrevivir mejor a la convivencia...",
+      "¿Quién es más probable que coquetee sin darse cuenta?",
+      "Quien pensamos tiene mas levante...",
+      "¿Quién es más probable que mande un mensaje esta noche a algun masculino?",
+      "¿Quién es más probable que este esta noche con algun masculino?",
+      "¿Quién es más probable que siga pensando en alguien del pasado?",
+      "¿Quién es más probable que stalkee a un ex esta semana?",
+      "Quien pensamos se engancha mas rapido...",
+      "¿Quién es más probable que tenga un casi-algo eterno?",
+      "¿Quién es más probable que tenga un casi-algo de verano?",
+      "¿Quién es más probable que se haga la difícil?",
+      "Quien pensamos tiene los gustos mas cuestionables...",
+      "Quien pensamos se va a casar primero...",
+      "¿Quién es más probable que tenga un glow up histórico este año?",
+      "{{RANDOM_NAME}}  Responde: ¿Cuándo fue la última vez que stalkeaste a alguien?",
+      "{{RANDOM_NAME}}  Responde: ¿Alguna vez te enganchaste con alguien del grupo / entorno cercano?",
+      "{{RANDOM_NAME}}  Responde: ¿Qué es lo más impulsivo que hiciste por alguien?",
+      "{{RANDOM_NAME}}  Responde: ¿A quién del grupo le envidias la vida amorosa?",
+      "{{RANDOM_NAME}}  Responde: ¿Tenés algún mensaje oculto o que no hays mostrado que no deberías?",
+      "{{RANDOM_NAME}}  Responde: ¿Qué cosa decís que no te importa pero sí te importa?",
+      "{{RANDOM_NAME}}  Responde: ¿Te escribirías con alguien del pasado si apareciera hoy?",
+      "{{RANDOM_NAME}}  Responde: ¿Como es tu tipo ideal, fisico, personalidad, etc?",
+      "{{RANDOM_NAME}}  Responde: ¿Quien del antiguo grupete/fila te gustaria que vuelva a nuestro grupo? ",
+      "{{RANDOM_NAME}}  Responde: Conta alguna experiencia sexual divertida ",
+      "{{RANDOM_NAME}}  Responde: ¿Beso favorito? donde, cuando, con quien.",
+      "{{RANDOM_NAME}}  Responde: ¿Posicion favorita? argumente",
+      "{{RANDOM_NAME}}  Responde: ¿Alguna vez te parecio atractivo/gusto alguien del grupete/fila?",
+      "{{RANDOM_NAME}}  Responde: Top 5 masculinos de la gen (fisico)",
+      "{{RANDOM_NAME}}  Responde: Top 5 girls de la gen (fisico)",
+      "{{RANDOM_NAME}}  Responde: Cuanto mas chico y cuanto mas grande irias",
+      "{{RANDOM_NAME}} Cambiá tu fondo de pantalla por algo qeu elija el grupo y tiene q durar la semana",
+      "{{RANDOM_NAME}} Mostranos tus dms sin tapar nada",
+      "{{RANDOM_NAME}} Decí en voz alta algo que te encante fisico de cada una",
+      "{{RANDOM_NAME}} Toma un vaso de algo alcholico, no importa la hora que sea",
+      "{{RANDOM_NAME}} Mostrá tu último mensaje enviado",
+      "{{RANDOM_NAME}} Hablá con acento raro por una ronda",
+      "{{RANDOM_NAME}} Dejá que alguien revise tu galería por 10 segundos",
+      "{{RANDOM_NAME}} Decí una mentira y dos verdades sin decir cual es cual",
+      "{{RANDOM_NAME}} le pregunta algo al jugador {{RANDOM_NAME2}}",
+      "{{RANDOM_NAME}} le prepara el siguiente trago al jugador {{RANDOM_NAME2}}",
+      "{{RANDOM_NAME}} le intercambia el trago al jugador {{RANDOM_NAME2}}",
+      "{{RANDOM_NAME}} juega una pulseada con {{RANDOM_NAME2}} , el q pierde toma",
+      "{{RANDOM_NAME}} le muestra sus dms a {{RANDOM_NAME2}} por 15 seg",
+      "{{RANDOM_NAME}} sube una selfi al finsta de {{RANDOM_NAME2}} por 5 minutos",
+      "{{RANDOM_NAME}} dice una mentira y una verdad y {{RANDOM_NAME2}} adivina",
+      "{{RANDOM_NAME}} le cuenta un secreto a {{RANDOM_NAME2}}"
+  ];
+
+  let players = [];
+  let scores = {};
+  let numPlayers = 0;
+
+  let shuffled = [];
+  let index = 0;
+  let timer;
+  let time = 15;
+  let lastPlayer = null;
+
+  function addInput() {
+    const input = document.createElement("input");
+    input.placeholder = "Nombre";
+    document.getElementById("inputs").appendChild(input);
+  }
+
+  addInput(); addInput(); addInput(); addInput();
+
+  function startGame() {
+    const inputs = document.querySelectorAll("#inputs input");
+    players = [];
+    scores = {};
+
+    inputs.forEach(i => {
+      if (i.value.trim() !== "") {
+        players.push(i.value.trim());
+        scores[i.value.trim()] = 0;
+      }
+    });
+
+    if (players.length < 2) return alert("Agregá al menos 2 jugadores");
+
+    numPlayers = players.length;
+
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+
+    renderPlayers();
+    shuffleQuestions();
+    showQuestion();
+  }
+
+  function renderPlayers() {
+    const container = document.getElementById("players");
+    container.innerHTML = "";
+
+    players.forEach((name, index) => {
+      const div = document.createElement("div");
+      div.className = "player";
+      div.style.boxShadow = `inset 0 -6px ${colors[index % colors.length]}`;
+      div.innerHTML = `${name}<span id="${name}">0</span>`;
+      div.onclick = () => addPoint(name);
+      container.appendChild(div);
+    });
+  }
+
+function getRandomPlayer() {
+  let candidate;
+  do {
+    candidate = players[Math.floor(Math.random() * players.length)];
+  } while (candidate === lastPlayer);
+
+  lastPlayer = candidate; 
+  return candidate;
+}
+
+  function shuffleQuestions() {
+    shuffled = [...questions].sort(() => Math.random() - 0.5);
+    index = 0;
+  }
+
+function parseQuestion(text) {
+  return text
+    .replace("{{RANDOM_NAME}}", getRandomPlayer())
+    .replace("{{RANDOM_NAME2}}", getRandomPlayer());
+}
+
+  function showQuestion() {
+    document.getElementById("timeup").style.display = "none";
+    document.getElementById("question").innerText =
+      parseQuestion(shuffled[index]);
+    resetTimer();
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    time = 15;
+    document.getElementById("timer").innerText = time;
+
+    timer = setInterval(() => {
+      time--;
+      document.getElementById("timer").innerText = time;
+      if (time <= 0) {
+        clearInterval(timer);
+        timeSound();
+        document.getElementById("timeup").style.display = "block";
+      }
+    }, 1000);
+  }
+
+  function nextQuestion() {
+    index++;
+    if (index >= shuffled.length) shuffleQuestions();
+    showQuestion();
+  }
+
+  function addPoint(name) {
+    clickSound();
+    scores[name]++;
+    document.getElementById(name).innerText = scores[name];
+    updateRanking();
+  }
+
+</script>
+</body>
+</html>
