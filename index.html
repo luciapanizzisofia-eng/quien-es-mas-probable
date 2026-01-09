@@ -327,10 +327,12 @@ function parseQuestion(text) {
   }
 
   function nextQuestion() {
+    resetRoundPoints(); 
     index++;
     if (index >= shuffled.length) shuffleQuestions();
     showQuestion();
   }
+
 
   function addPoint(name) {
     clickSound();
@@ -339,7 +341,16 @@ function parseQuestion(text) {
     updateRanking();
   }
 
+  function resetRoundPoints() {
+  players.forEach(name => {
+    scores[name] = 0;
+  });
+}
+
+  
+
 </script>
 </body>
 
 </html>
+
